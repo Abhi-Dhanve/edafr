@@ -5,7 +5,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import axios from "axios";
 import "./tailwind.css";
 import { useServerConfig } from "./shared/stores/global.ts";
-import { ClerkProvider } from "@clerk/clerk-react";
+import { PrivyProvider } from "@privy-io/react-auth";
+import { privyConfig } from "./shared/config/privy.ts";
 
 const queryClient = new QueryClient();
 axios.defaults.baseURL = "/api";
@@ -26,11 +27,8 @@ function Providers(props: { children: React.ReactNode }) {
   if (serverConfig.loading) return <></>;
 
   return (
-    <ClerkProvider
-      publishableKey={serverConfig.clerkPublishableKey}
-      afterSignOutUrl="/"
-    >
+    <PrivyProvider appId={serverConfig.privyAppId} config={privyConfig}>
       {props.children}
-    </ClerkProvider>
+    </PrivyProvider>
   );
 }

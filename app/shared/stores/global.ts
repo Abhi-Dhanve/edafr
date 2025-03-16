@@ -1,24 +1,29 @@
+import { useQuery } from "@tanstack/react-query";
+import axios from "axios";
 import { useEffect } from "react";
 import { create } from "zustand";
-import api from "../hooks/api";
+import { MINUTE } from "../config/constants";
 
 interface IGlobalState {
-    clerkPublishableKey: string;
+    privyAppId: string;
     init: boolean;
     actions: {
-        setClerkPublishableKey: (key: string) => void;
+        setPrivyAppId: (appId: string) => void;
         initialize: () => void;
     };
 }
 
 const useGlobalStore = create<IGlobalState>()((set) => ({
-    clerkPublishableKey: "",
+    privyAppId: "",
     init: false,
+
     actions: {
-        setClerkPublishableKey: (key) => set({ clerkPublishableKey: key }),
+        setPrivyAppId: (appId) => set({ privyAppId: appId }),
         initialize: () => set({ init: true }),
     },
 }));
+
+export const usePrivyAppId = () => useGlobalStore((state) => state.privyAppId);
 
 export const useGlobalStoreActions = () =>
     useGlobalStore((state) => state.actions);
@@ -26,20 +31,28 @@ export const useGlobalStoreActions = () =>
 export const useServerConfig = () => {
     const globalStore = useGlobalStore();
 
-    const serverStats = api.useStats();
+    const serverStats = useQuery({
+        queryKey: ["server-stats"],
+        queryFn: async () => {
+            const res = await axios.get<{ privyAppId: string }>(
+                "/stats",
+            );
+            return res.data;
+        },
+        enabled: !globalStore.init,
+        staleTime: 10 * MINUTE,
+    });
 
     useEffect(() => {
         if (serverStats.data) {
-            globalStore.actions.setClerkPublishableKey(
-                serverStats.data.clerkPublishableKey,
-            );
+            globalStore.actions.setPrivyAppId(serverStats.data.privyAppId);
             globalStore.actions.initialize();
         }
     }, [serverStats.data]);
 
     return {
-        clerkPublishableKey: globalStore.clerkPublishableKey,
+        privyAppId: globalStore.privyAppId,
         loading: (serverStats.isLoading || !globalStore.init ||
-            !globalStore.clerkPublishableKey),
+            !globalStore.privyAppId),
     };
 };

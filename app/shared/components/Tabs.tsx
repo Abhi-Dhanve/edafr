@@ -1,15 +1,16 @@
-import { SignedIn, SignedOut, useClerk, UserButton } from "@clerk/clerk-react";
-import Icon, { IconType } from "./Icon";
+import Icon from "./Icon";
 import { NavLink } from "react-router";
 import { cn } from "../utils/utils";
+import { usePrivy } from "@privy-io/react-auth";
+import UserAvatar from "./UserAvatar";
 
 export default function () {
-  const clerk = useClerk();
+  const privy = usePrivy();
 
   return (
     <nav className="sticky bottom-0 bg-card p-page py-3 flex justify-evenly">
       <NavLink
-        to={"/"}
+        to={"/home"}
         className={({ isActive }) =>
           cn("flex flex-col items-center gap-y-1", isActive && "text-primary")
         }
@@ -18,7 +19,12 @@ export default function () {
         <p className="text-xxs">Home</p>
       </NavLink>
 
-      <NavLink to={"/session"} className="flex flex-col items-center gap-y-1">
+      <NavLink
+        to={"/register"}
+        className={({ isActive }) =>
+          cn("flex flex-col items-center gap-y-1", isActive && "text-primary")
+        }
+      >
         <Icon name="calendar-fold" className="size-6" />
         <p className="text-xxs">Register</p>
       </NavLink>
@@ -31,23 +37,15 @@ export default function () {
       <button
         className="flex flex-col items-center gap-y-1 relative"
         onClick={() => {
-          !clerk.isSignedIn && clerk.openSignIn({forceRedirectUrl: "/"});
+          !privy.authenticated && privy.login();
         }}
       >
-        {clerk.user?.hasImage ? (
-          <img src={clerk.user?.imageUrl} className="size-6 rounded-full" />
+        {privy.user?.google?.name ? (
+          <UserAvatar name={privy.user?.google?.name} />
         ) : (
           <Icon name="user" className="size-6" />
         )}
         <p className="text-xxs">Account</p>
-
-        <SignedIn>
-          <div className="z-1 absolute inset-0 flex justify-center items-center opacity-0">
-            <div className="scale-150">
-              <UserButton />
-            </div>
-          </div>
-        </SignedIn>
       </button>
     </nav>
   );

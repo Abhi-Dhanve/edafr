@@ -25,9 +25,12 @@ app.use(
 let servedSessions = 0;
 app.get("/stats", async (ctx) => {
   servedSessions++;
+
+  const privyAppId = env.PRIVY_APP_ID;
+
   return ctx.json({
     servedSessions,
-    clerkPublishableKey: env.CLERK_PUBLISHABLE_KEY,
+    privyAppId,
   });
 });
 

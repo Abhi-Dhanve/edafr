@@ -1,6 +1,7 @@
 const envKeys = [
-    "CLERK_PUBLISHABLE_KEY",
-    "CLERK_SECRET_KEY",
+    "PRIVY_APP_SECRET",
+    "PRIVY_APP_ID",
+    "DB_URI"
 ] as const;
 
 type ENV = Record<typeof envKeys[number], string>;
