@@ -10,6 +10,15 @@ import { privyConfig } from "./shared/config/privy.ts";
 
 const queryClient = new QueryClient();
 axios.defaults.baseURL = "/api";
+axios.interceptors.response.use(
+  (res) => {
+    return res;
+  },
+  (error) => {
+    console.error("Something went wrong with the server :(");
+    return error;
+  }
+);
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

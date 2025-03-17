@@ -3,9 +3,12 @@ import { NavLink } from "react-router";
 import { cn } from "../utils/utils";
 import { usePrivy } from "@privy-io/react-auth";
 import UserAvatar from "./UserAvatar";
+import api from "../hooks/api";
 
 export default function () {
   const privy = usePrivy();
+
+  const user = api.useSelfInfo()
 
   return (
     <nav className="sticky bottom-0 bg-card p-page py-3 flex justify-evenly">
@@ -40,8 +43,8 @@ export default function () {
           !privy.authenticated && privy.login();
         }}
       >
-        {privy.user?.google?.name ? (
-          <UserAvatar name={privy.user?.google?.name} />
+        {user.data?.name ? (
+          <UserAvatar className="rounded-full size-6" name={user.data?.name} />
         ) : (
           <Icon name="user" className="size-6" />
         )}

@@ -40,7 +40,7 @@ export default function () {
           <input
             type="text"
             disabled
-            value={privy.user?.google?.name}
+            defaultValue={privy.user?.google?.name}
             className="w-full p-2 mt-1 bg-background border rounded-lg text-sm disabled:text-foreground/50"
           />
         </div>
@@ -50,7 +50,7 @@ export default function () {
           <input
             type="text"
             disabled
-            value={privy.user?.google?.email}
+            defaultValue={privy.user?.google?.email}
             className="w-full p-2 mt-1 bg-background border rounded-lg text-sm disabled:text-foreground/50"
           />
         </div>

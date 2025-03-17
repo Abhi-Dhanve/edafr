@@ -1,9 +1,8 @@
 import { drizzle } from "drizzle-orm/bun-sql";
-import { SQL } from "bun";
 import schema from "./schema";
 import env from "../../../env";
 
-const client = new SQL(env.DB_URI);
+const client = new Bun.SQL(env.DB_URI);
 const db = drizzle({
     client,
     schema,

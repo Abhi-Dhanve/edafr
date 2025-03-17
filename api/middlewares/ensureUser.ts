@@ -4,7 +4,7 @@ import db from "../lib/db";
 import { eq } from "drizzle-orm";
 import { users } from "../lib/db/schema/user";
 import { DB } from "../lib/db/schema";
-import { Address, isAddress } from "viem";
+import { Address } from "viem";
 
 const ensureUser = createMiddleware<{
     Variables: {
@@ -21,24 +21,7 @@ const ensureUser = createMiddleware<{
     )
         .limit(1);
 
-    if (!user) {
-        const address = privyUser.wallet?.address;
-
-        if (!address) return ctx.text("Missing embedded wallet", 401);
-        if (!isAddress(address)) {
-            return ctx.text(
-                "Invalid EVM wallet retrieved from Privy",
-                401,
-            );
-        }
-
-        const { 0: newUser } = await db.insert(users).values({
-            address,
-            privyId,
-        }).returning();
-
-        user = newUser;
-    }
+    if (!user) return ctx.json("Missing user in DB", 424);
 
     ctx.set("user", user as DB["user"] & { address: Address });
     await next();
