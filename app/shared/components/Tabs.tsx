@@ -46,8 +46,8 @@ export default function () {
           privy.authenticated ? setAccountDrawerOpen(true) : privy.login();
         }}
       >
-        {user.data?.name ? (
-          <UserAvatar className="rounded-full size-6" name={user.data?.name} />
+        {privy.user?.google?.name ? (
+          <UserAvatar className="size-6 rounded-full" name={privy.user?.google?.name} />
         ) : (
           <Icon name="user" className="size-6" />
         )}
@@ -60,34 +60,4 @@ export default function () {
     </nav>
   );
 }
-
-function ProfileDrawer() {
-  const privy = usePrivy();
-  const user = api.useSelfInfo();
-
-  return (
-    <div className="flex flex-col w-full">
-      <div className="flex items-center gap-x-3">
-        <UserAvatar className="rounded-full size-12" name={user.data?.name} />
-
-        <div>
-          <h3 className="flex items-center gap-x-2">
-            {user.data.name} <Icon name="pen" className="size-[0.6em]" />
-          </h3>
-
-          <p className="text-sm text-foreground/70">{user.data.email}</p>
-        </div>
-      </div>
-
-      <button
-        className="bg-black border p-2 w-full mt-5 border-red-700/60 text-red-700 flex items-center justify-center rounded-lg gap-x-2"
-        onClick={() => privy.logout().
-          // again, better ways to handle this
-          then(() => location.reload())}
-      >
-        Logout
-        <Icon name="log-out" />
-      </button>
-    </div>
-  );
-}
+// payment method, time , amount , sesiions array obj specific price, download button 

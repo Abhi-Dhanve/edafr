@@ -1,3 +1,5 @@
+import { cn } from "../utils/utils";
+
 type UserAvatarProps = {
   className?: string;
   name: string;
