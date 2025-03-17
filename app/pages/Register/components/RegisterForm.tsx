@@ -2,14 +2,12 @@ import { useState } from "react";
 import Icon from "../../../shared/components/Icon";
 import ControlledDrawer from "../../../shared/components/ControlledDrawer";
 import ConfirmationDrawer from "./ConfirmationDrawer";
-
-const sessions = [
-  { name: "Salsa Session", unitPrice: 500, billedPer: "hour" },
-  { name: "Rock Session", unitPrice: 750, billedPer: "day" },
-  { name: "Jazz Session", unitPrice: 1000, billedPer: "session" },
-];
+import api from "../../../shared/hooks/api";
 
 export default function () {
+  const {data : user} = api.useSelfInfo()
+  const {data : sessions} = api.useSessionsList();
+
   const [showConfirmationDrawer, setShowConfirmationDrawer] = useState(false);
 
   const [selectedSessions, setSelectedSessions] = useState([
@@ -30,6 +28,8 @@ export default function () {
     );
   }
 
+  if (!sessions) return <div>Loading...</div>;
+
   return (
     <div role="form" className="p-4 pt-2 border rounded-xl bg-card w-full">
       <div>
@@ -37,7 +37,7 @@ export default function () {
         <input
           type="text"
           disabled
-          defaultValue="John Doe"
+          defaultValue={user?.name}
           className="w-full p-2 mt-1 bg-background border rounded-lg text-sm disabled:text-foreground/50"
         />
       </div>
@@ -47,7 +47,7 @@ export default function () {
         <input
           type="text"
           disabled
-          defaultValue="johndoe@example.com"
+          defaultValue={user?.email}
           className="w-full p-2 mt-1 bg-background border rounded-lg text-sm disabled:text-foreground/50"
         />
       </div>

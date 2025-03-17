@@ -14,15 +14,16 @@ const ensureUser = createMiddleware<{
     const privyUser = await getPrivyUserFromContext(ctx);
     if (!privyUser) return ctx.text("Unauthorized", 401);
 
+    
     const privyId = privyUser.id;
-
+    
     let { 0: user } = await db.select().from(users).where(
         eq(users.privyId, privyId),
     )
-        .limit(1);
-
+    .limit(1);
+    
     if (!user) return ctx.json("Missing user in DB", 424);
-
+    
     ctx.set("user", user as DB["user"] & { address: Address });
     await next();
 });

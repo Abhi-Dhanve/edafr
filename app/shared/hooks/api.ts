@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { MINUTE } from "../config/constants";
 import { usePrivy } from "@privy-io/react-auth";
@@ -28,14 +28,16 @@ const api = {
                         email: string;
                     };
                 }>("/user/self");
+
                 const resp = res.status === 424
                     ? {
                         privyId: privy.user?.id,
                         name: privy.user?.google?.name,
-                        email: privy.user.email.address || privy.user.google.email,
+                        email: privy.user?.email?.address ||
+                            privy.user?.google?.email,
                         status: -1,
                     }
-                    : { ...res.data.user, status: 0 };
+                    : { ...res.data?.user, status: 0 };
 
                 return resp;
             },
@@ -45,6 +47,7 @@ const api = {
     },
 
     useCreateSelfUser: () => {
+        const queryClient = useQueryClient();
         return useMutation({
             mutationFn: async (args: { name: string }) => {
                 const { name } = args;
@@ -56,8 +59,26 @@ const api = {
             },
             onSuccess: () => {
                 // not the best way of handling this, fix later
-                location.reload()
+                queryClient.invalidateQueries({ queryKey: ["self-info"] });
+                location.reload();
             },
+        });
+    },
+
+    useSessionsList: () => {
+        return useQuery({
+            queryKey: ["sessions"],
+            queryFn: async () => {
+                const res = await axios.get<{
+                    sessions: Array<{
+                        name: string;
+                        unitPrice: number;
+                        billedPer: string;
+                    }>;
+                }>("/sessions/list");
+                return res.data.sessions;
+            },
+            staleTime: 10 * MINUTE,
         });
     },
 };
