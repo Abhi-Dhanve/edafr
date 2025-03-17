@@ -32,7 +32,7 @@ const api = {
                     ? {
                         privyId: privy.user?.id,
                         name: privy.user?.google?.name,
-                        email: privy.user.email || privy.user.google.email,
+                        email: privy.user.email.address || privy.user.google.email,
                         status: -1,
                     }
                     : { ...res.data.user, status: 0 };

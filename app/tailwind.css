@@ -26,6 +26,16 @@
     user-select: none;
     text-decoration: none;
   }
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    margin: 0;
+  }
+  input[type="number"] {
+    -moz-appearance: textfield;
+  }
 
   button {
     @apply cursor-pointer;
@@ -33,7 +43,7 @@
 
   input,
   textarea {
-    @apply outline-none rounded focus:outline-none;
+    @apply outline-none focus:outline-none;
   }
 }
 
