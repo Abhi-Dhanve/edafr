@@ -8,7 +8,7 @@ import api from "../hooks/api";
 export default function () {
   const privy = usePrivy();
 
-  const user = api.useSelfInfo()
+  const user = api.useSelfInfo();
 
   return (
     <nav className="sticky bottom-0 bg-card p-page py-3 flex justify-evenly">

@@ -22,9 +22,11 @@ const api = {
             queryKey: ["self-info", privy.user?.id],
             queryFn: async () => {
                 const res = await axios.get<{
-                    privyId: string;
-                    name: string;
-                    email: string;
+                    user: {
+                        privyId: string;
+                        name: string;
+                        email: string;
+                    };
                 }>("/user/self");
                 const resp = res.status === 424
                     ? {
@@ -33,7 +35,7 @@ const api = {
                         email: privy.user.email || privy.user.google.email,
                         status: -1,
                     }
-                    : {...res.data, status: 0};
+                    : { ...res.data.user, status: 0 };
 
                 return resp;
             },
@@ -51,6 +53,10 @@ const api = {
                     name,
                 });
                 return res.data;
+            },
+            onSuccess: () => {
+                // not the best way of handling this, fix later
+                location.reload()
             },
         });
     },

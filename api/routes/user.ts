@@ -14,7 +14,9 @@ app.get("/self", ensureUser, async (ctx) => {
 });
 
 app.post("/self", async (ctx) => {
-    const { name } = ctx.body;
+    const { name } = await ctx.req.json();
+
+    if (typeof name != "string") return ctx.text("Name is required", 400);
 
     const privyUser = await getPrivyUserFromContext(ctx);
 

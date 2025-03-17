@@ -34,7 +34,7 @@ export default function () {
         Register for sessions
       </h1>
 
-      <div role="form" className="p-4 border rounded-xl bg-card w-full">
+      <div role="form" className="p-4 pt-2 border rounded-xl bg-card w-full">
         <div>
           <label className="text-sm">Name</label>
           <input

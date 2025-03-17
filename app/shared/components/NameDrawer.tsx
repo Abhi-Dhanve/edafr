@@ -16,7 +16,7 @@ export default function (props: { open: boolean }) {
         <Drawer.Overlay className="fixed inset-0 bg-background/40 backdrop-blur-sm" />
 
         <Drawer.Content className="flex flex-col rounded-t-xl border-t h-min fixed bottom-0 w-full bg-card p-4">
-          <h2 className="text-lg font-semibold">Please input your full name</h2>
+          <Drawer.Title className="text-lg font-semibold">Please input your full name</Drawer.Title>
 
           <input
             ref={nameRef}
@@ -33,7 +33,7 @@ export default function (props: { open: boolean }) {
               createSelfUser({ name });
             }}
           >
-            <Icon name="check" /> Confirm
+            <Icon name="check" className="translate-y-[2px]" strokeWidth={3} /> Confirm
           </button>
         </Drawer.Content>
       </Drawer.Portal>
