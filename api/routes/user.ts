@@ -34,7 +34,25 @@ app.post("/self", async (ctx) => {
             "invalid@email.com",
     });
 
-    ctx.text("Success", 201);
+    return ctx.text("Success", 201);
+});
+
+app.put("/self", ensureUser, async (ctx) => {
+
+    try {
+        const { name } = await ctx.req.json();
+        const { user } = ctx.var;
+        console.log(user);
+        if (typeof name != "string") return ctx.text("Name is required", 400);
+        await db.update(users).set({ name }).where(eq(users.id, user.id));
+        ctx.text("Success", 200);
+        return ctx.json({name},200);
+
+    } catch (error) {
+       console.log(error);
+       return ctx.json({error: "error"},400); 
+    }
+   
 });
 
 export default app;

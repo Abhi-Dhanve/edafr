@@ -6,6 +6,7 @@ import UserAvatar from "./UserAvatar";
 import api from "../hooks/api";
 import ControlledDrawer from "./ControlledDrawer";
 import { useState } from "react";
+import axios from "axios";
 
 export default function () {
   const privy = usePrivy();
@@ -61,9 +62,29 @@ export default function () {
   );
 }
 
+
 function ProfileDrawer() {
   const privy = usePrivy();
   const user = api.useSelfInfo();
+  
+
+  const [isEditing, setIsEditing] = useState(false);
+  const [name, setName] = useState(user.data.name);
+
+  function handleEdit() {
+    setIsEditing(isEditing => !isEditing);
+  }
+const handleSave = async () => {
+    try {
+     await axios.put("/user/self", {name}).then(() => {
+        user.refetch();
+        setIsEditing(false);
+      });
+
+    } catch (error) {
+      console.log(error);
+    }
+  }
 
   return (
     <div className="flex flex-col w-full">
@@ -71,9 +92,17 @@ function ProfileDrawer() {
         <UserAvatar className="rounded-full size-12" name={user.data?.name} />
 
         <div>
+         
+
+          {isEditing ? <p>
+            <input type="text" value={name} onChange={(e) => setName(e.target.value)} />
+            <button onClick={handleSave}>Save</button>
+            <button onClick={handleEdit}>Cancel</button>
+          </p>  : <>
           <h3 className="flex items-center gap-x-2">
-            {user.data.name} <Icon name="pen" className="size-[0.6em]" />
+            {user.data.name} <Icon onClick={handleEdit} style={{cursor: "pointer"}} name="pen" className="size-[0.6em]" />
           </h3>
+          </> }
 
           <p className="text-sm text-foreground/70">{user.data.email}</p>
         </div>

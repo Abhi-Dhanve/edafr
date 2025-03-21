@@ -6,6 +6,7 @@ import api from "../../../shared/hooks/api";
 
 export default function () {
   const {data : user} = api.useSelfInfo()
+
   const {data : sessions} = api.useSessionsList();
 
   const [showConfirmationDrawer, setShowConfirmationDrawer] = useState(false);

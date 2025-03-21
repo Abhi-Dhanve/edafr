@@ -13,6 +13,7 @@ export default function () {
           <Route path="home" element={<Home />} />
           <Route path="register" element={<Register />} />
           <Route path="history" element={<History />} />
+
         </Route>
 
         <Route path="*" element={<NotFound />} />
