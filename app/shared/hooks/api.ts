@@ -23,6 +23,7 @@ const api = {
             queryFn: async () => {
                 const res = await axios.get<{
                     user: {
+
                         privyId: string;
                         name: string;
                         email: string;

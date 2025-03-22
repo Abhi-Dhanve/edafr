@@ -1,9 +1,11 @@
 import * as user from "./user";
 import * as session from "./session";
+import * as userSessions from "./userSessions";
 
 const schema = {
     ...user,
-    ...session
+    ...session,
+    ...userSessions,
 };
 
 export default schema;

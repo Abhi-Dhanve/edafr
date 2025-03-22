@@ -12,6 +12,10 @@ export default function (props: IProps) {
   const { data: sessions } = api.useSessionsList();
   const { selectedSessions } = props;
 
+  const {data : name } = api.useSelfInfo();
+  const {data : email } = api.useSelfInfo();
+
+
   const calculateTotal = () => {
     return selectedSessions.reduce((sum, session) => {
       return sum + sessions[session.id].unitPrice * session.quantity;
@@ -19,6 +23,20 @@ export default function (props: IProps) {
   };
 
   if (!sessions) return <div>Loading...</div>;
+
+  const handlePay = async () => {
+
+    const selectedSessionsArr = selectedSessions.map((s)=>s.id);
+
+    const response = await axios.post("/payment/create", {
+     name: name,
+     email: email,
+      sessionIds: selectedSessionsArr, 
+      paymentStatus: "paid",   
+    });
+    console.log(response);
+  };
+
 
   return (
     <div className="flex flex-col w-full">
@@ -39,7 +57,7 @@ export default function (props: IProps) {
         </div>
       </div>
 
-      <button className="mt-6 mb-2 bg-green-700 px-4 py-2 rounded-lg">Confirm & Pay</button>
+      <button onClick={handlePay} className="mt-6 mb-2 bg-green-700 px-4 py-2 rounded-lg">Confirm & Pay</button>
     </div>
   );
 }

@@ -3,6 +3,7 @@ import { cors } from "hono/cors";
 import env from "../env";
 import user from "./routes/user";
 import sessions from "./routes/sessions"; 
+import payments from "./routes/payments";
 
 const app = new Hono();
 
@@ -17,13 +18,14 @@ app.use(
       return "";
     },
     credentials: true,
-    allowMethods: ["POST", "GET", "OPTIONS"],
+    allowMethods: ["POST", "GET", "PUT", "OPTIONS"],
     allowHeaders: ["Content-Type", "Authorization"],
   }),
 );
 
 app.route("user", user);
 app.route("sessions", sessions);
+app.route("payment", payments);
 
 let servedSessions = 0;
 app.get("/stats", async (ctx) => {
