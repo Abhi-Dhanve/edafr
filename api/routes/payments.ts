@@ -20,7 +20,7 @@ app.get("/list", ensureUser, async (ctx) => {
     return ctx.json({sessions:resp},200);
 
   } catch (error) {
-    ctx.log(error);
+    // ctx.text(error);
     return ctx.text("The server cried", 500);
   }
 });
@@ -39,7 +39,7 @@ app.post("/create", ensureUser, async (ctx) => {
     });
     return ctx.json({ success: true });
   } catch (error) {
-    ctx.log(error);
+    // ctx.log(error);
     return ctx.text("The server cried", 500);
   }
 });
