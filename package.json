@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "build": "bunx --bun vite build",
-    "start": "bun run server",
+    "start": "bun run server.ts",
     "dev": "NODE_ENV=development bunx --bun vite"
   },
   "dependencies": {
