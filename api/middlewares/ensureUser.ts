@@ -6,6 +6,7 @@ import { users } from "../lib/db/schema/user";
 import { DB } from "../lib/db/schema";
 import { Address } from "viem";
 
+
 const ensureUser = createMiddleware<{
     Variables: {
         user: DB["user"] & { address: Address };

@@ -3,7 +3,8 @@ import ensureUser from "../middlewares/ensureUser";
 import { getPrivyUserFromContext } from "../lib/privy";
 import db from "../lib/db";
 import { users } from "../lib/db/schema/user";
-import { eq } from "drizzle-orm";
+import { eq, isNull } from "drizzle-orm";
+import ensureAdmin from "../middlewares/ensureAdmin";
 
 const app = new Hono();
 
@@ -12,6 +13,19 @@ app.get("/self", ensureUser, async (ctx) => {
 
     return ctx.json({ user }, 200);
 });
+
+app.get("/all", async (ctx) => {
+    try {
+        const allUsers = await db.select().from(users);
+
+        if(allUsers.length == 0){return ctx.text("No users", 404)}
+        return ctx.json({ users: allUsers }, 200);
+    } catch (error) {
+        console.log(error);
+        return ctx.json(error , 400);
+    }  
+  
+})
 
 app.post("/self", async (ctx) => {
     const { name } = await ctx.req.json();
@@ -54,5 +68,35 @@ app.put("/self", ensureUser, async (ctx) => {
     }
    
 });
+
+
+app.delete("/:id", ensureAdmin, async (ctx) => {
+    try {
+        const userId = ctx.req.param("id");
+        
+        // Check if the user exists first
+        const { 0: userToDelete } = await db.select()
+            .from(users)
+            .where(eq(users.id, Number(userId)))
+            .limit(1);
+            
+        if (!userToDelete) {
+            return ctx.json({ error: "User not found" }, 404);
+        }
+
+        // Delete the user
+        await db.delete(users).where(eq(users.id, Number(userId)));
+        
+        return ctx.json({ 
+            message: "User deleted successfully",
+            deletedUserId: userId 
+        }, 200);
+    } catch (error) {
+        console.log(error);
+        return ctx.json({ error: "Failed to delete user" }, 400);
+    }
+});
+
+
 
 export default app;

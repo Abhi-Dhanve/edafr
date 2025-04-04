@@ -5,9 +5,9 @@ import ConfirmationDrawer from "./ConfirmationDrawer";
 import api from "../../../shared/hooks/api";
 
 export default function () {
-  const {data : user} = api.useSelfInfo()
+  const { data: user } = api.useSelfInfo();
 
-  const {data : sessions} = api.useSessionsList();
+  const { data: sessions } = api.useSessionsList();
 
   const [showConfirmationDrawer, setShowConfirmationDrawer] = useState(false);
 
@@ -17,6 +17,10 @@ export default function () {
 
   function addSession() {
     setSelectedSessions((p) => [...p, { id: 0, quantity: 1 }]);
+  }
+
+  function removeSession(idx: number) {
+    setSelectedSessions((prev) => prev.filter((_, i) => i !== idx));
   }
 
   function updateSession(
@@ -53,43 +57,54 @@ export default function () {
         />
       </div>
 
-      {selectedSessions.map((s, idx) => (
-        <div key={s.id} className="mt-3 flex gap-2 items-center">
-          <div className="flex-1">
-            <label className="text-sm">Choose a session</label>
 
-            <div className="flex gap-x-2 items-center mt-1">
-              <select
-                value={s.id}
-                onChange={(e) => updateSession(idx, "id", e.target.value)}
-                className="flex-1 p-2 bg-background border rounded-md text-sm"
-              >
-                <option className="hidden" value="">
-                  Choose a session
-                </option>
-                {sessions.map((session, key) => (
-                  <option key={key} value={key}>
-                    {session.name}
-                    {` (₹ ${session.unitPrice} / ${session.billedPer})`}
-                  </option>
-                ))}
-              </select>
+{selectedSessions.map((s, idx) => (
+  <div key={idx} className="mt-3 flex gap-2 items-center relative">
+    <div className="flex-1">
+      <div className="flex justify-between items-center mb-1">
+        <label className="text-sm">Choose a session</label>
+        {selectedSessions.length > 1 && (
+          <button
+            onClick={() => removeSession(idx)}
+            className="text-sm px-2 py-1 bg-primary text-primary-foreground rounded-md hover:bg-background hover:text-primary transition-colors flex items-center gap-1"
+          >
+            <Icon name="trash" className="size-4" /> Remove
+          </button>
+        )}
+      </div>
 
-              <span>for</span>
+      <div className="flex gap-x-2 items-center">
+        <select
+          value={s.id}
+          onChange={(e) => updateSession(idx, "id", e.target.value)}
+          className="flex-1 p-2 bg-background border rounded-md text-sm"
+        >
+          <option className="hidden" value="">
+            Choose a session
+          </option>
+          {sessions.map((session, key) => (
+            <option key={key} value={key}>
+              {session.name}
+              {` (₹ ${session.unitPrice} / ${session.billedPer})`}
+            </option>
+          ))}
+        </select>
 
-              <input
-                type="number"
-                min="1"
-                value={s.quantity}
-                onChange={(e) => updateSession(idx, "quantity", e.target.value)}
-                className="text-sm px-2 w-8 border-b border-b-foreground/40 text-center"
-              />
+        <span>for</span>
 
-              <span>{sessions[s.id].billedPer}s</span>
-            </div>
-          </div>
-        </div>
-      ))}
+        <input
+          type="number"
+          min="1"
+          value={s.quantity}
+          onChange={(e) => updateSession(idx, "quantity", e.target.value)}
+          className="text-sm px-2 w-8 border-b border-b-foreground/40 text-center"
+        />
+
+        <span>{sessions[s.id].billedPer}s</span>
+      </div>
+    </div>
+  </div>
+))}
 
       <button
         onClick={addSession}

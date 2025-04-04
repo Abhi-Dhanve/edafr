@@ -18,7 +18,7 @@ app.use(
       return "";
     },
     credentials: true,
-    allowMethods: ["POST", "GET", "PUT", "OPTIONS"],
+    allowMethods: ["POST", "GET", "PUT", "OPTIONS", "DELETE"],
     allowHeaders: ["Content-Type", "Authorization"],
   }),
 );

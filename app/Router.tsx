@@ -4,6 +4,7 @@ import NotFound from "./pages/_404";
 import Home from "./pages/Home";
 import Register from "./pages/Register";
 import History from "./pages/History";
+import Admin from "./pages/Admin";
 
 export default function () {
   return (
@@ -13,6 +14,7 @@ export default function () {
           <Route path="home" element={<Home />} />
           <Route path="register" element={<Register />} />
           <Route path="history" element={<History />} />
+          <Route path="admin" element={<Admin />} />
 
         </Route>
 

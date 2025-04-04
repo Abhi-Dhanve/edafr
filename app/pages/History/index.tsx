@@ -1,80 +1,99 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import api from "../../shared/hooks/api";
 
 export default function Transactions() {
-  const [details, setDetails] = useState(false);
+  const { data: permittedSessions } = api.usePermitedSession();
+  const { data: sessions } = api.useSessionsList();
 
-  const handleExpand = () => {
-    setDetails(!details);
+  const [sessionList, setSessionList] = useState([]);
+  const [expandedSessions, setExpandedSessions] = useState({}); // Object to track expanded states
+
+  useEffect(() => {
+    if (sessions) {
+      setSessionList(sessions);
+    }
+  }, [sessions]);
+
+  const findUnitPrice = (sessionId) => {
+    const session = sessionList.find((s) => Number(s.id) === Number(sessionId));
+    return session ? session.unitPrice : 0;
   };
-  const dummyData = [
-    {
-      method: "Credit Card",
-      time: "2025-03-17 10:00 AM",
-      amount: 300,
-      sessions: [
-        { type: "A", price: 50, quantity: 2 },
-        { type: "B", price: 100, quantity: 1 },
-        { type: "B", price: 100, quantity: 1 },
-      ],
-    },
-    {
-      method: "Paypal",
-      time: "2025-01-17 10:00 AM",
-      amount: 350,
-      sessions: [
-        { type: "A", price: 50, quantity: 1 },
-        { type: "B", price: 100, quantity: 1 },
-        { type: "C", price: 200, quantity: 1 },
-      ],
-    },
-  ];
+
+  const calculateTotal = (session) => {
+    return session?.sessionIds?.reduce((sum, detail) => {
+      const matchingSession = sessions?.find((s) => Number(s.id) === Number(detail.sessionId));
+      if (matchingSession) {
+        sum += matchingSession.unitPrice * detail.quantity;
+      }
+      return sum;
+    }, 0);
+  };
+
+  const findSessionName = (sessionId) => {
+    const session = sessions?.find((s) => Number(s.id) === Number(sessionId));
+    return session ? session.name : "";
+  };
+
+  // Toggle function for individual session
+  const handleExpand = (index) => {
+    setExpandedSessions((prev) => ({
+      ...prev,
+      [index]: !prev[index], // Toggle only the clicked index
+    }));
+  };
 
   return (
     <section className="p-page pt-5 flex flex-col items-center">
-      {dummyData.map((transaction, index) => (
+      {permittedSessions?.map((session, index) => (
         <article
           key={index}
           className="px-4 py-2 border rounded-2xl flex flex-col justify-between w-full mb-4"
         >
           <header className="flex justify-between items-center mb-2">
-            <h2 className="font-medium text-xl">{transaction.method}</h2>
-            <span className="font-medium text-xl">${transaction.amount}</span>
+            <h2 className="font-medium text-xl">{session.createdAt.slice(0,10)}</h2>
+            <span className="font-medium text-xl">
+              ${calculateTotal(session)} {/* Updated to calculate per session */}
+            </span>
           </header>
 
           <div className="flex justify-between text-sm text-gray-500 mb-2">
-            <time>{transaction.time}</time>
-            <span>{transaction.sessions.length} items</span>
+            <time>{session?.createdAt.slice(11,-5)}</time>
+            <span>{session?.sessionIds?.length} items</span>
           </div>
 
           <button
             className="text-sm cursor-pointer text-left"
-            onClick={handleExpand}
-            aria-expanded={details}
+            onClick={() => handleExpand(index)}
+            aria-expanded={expandedSessions[index] || false}
           >
-            {details ? (
+            {expandedSessions[index] ? (
               <div className="flex flex-col pt-2">
                 <div className="border-b pb-2 uppercase">Tap to Collapse</div>
 
-                {transaction.sessions.map((session, i) => (
+                {session?.sessionIds?.map((sessionInfo, i) => (
                   <div
                     key={i}
                     className="flex justify-between pt-3 items-center border-b pb-2"
                   >
                     <div className="flex flex-col">
-                      <div className="capitalize text-lg">Session {session.type}</div>
+                      <div className="capitalize text-lg">
+                        {findSessionName(sessionInfo.sessionId)}
+                      </div>
                       <div className="text-sm text-gray-500">
-                        {session.quantity} x ${session.price}
+                        {sessionInfo.quantity} x ${findUnitPrice(sessionInfo.sessionId)}
                       </div>
                     </div>
                     <div className="font-medium text-xl">
-                      ${session.quantity * session.price}
+                      ${sessionInfo.quantity * findUnitPrice(sessionInfo.sessionId)}
                     </div>
                   </div>
                 ))}
 
                 <div className="flex justify-between py-3 items-center">
                   <div className="capitalize text-lg">Total</div>
-                  <div className="font-medium text-xl">${transaction.amount}</div>
+                  <div className="font-medium text-xl">
+                    ${calculateTotal(session)} {/* Updated to calculate per session */}
+                  </div>
                 </div>
               </div>
             ) : (
