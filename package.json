@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "bunx --bun drizzle-kit push && bunx --bun vite build",
+    "build": "bunx --bun vite build",
     "start": "bun run server",
     "dev": "NODE_ENV=development bunx --bun vite"
   },
