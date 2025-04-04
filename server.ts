@@ -26,7 +26,7 @@ app.use((ctx, next) => {
   return next();
 });
 
-app.route("api/v1", api);
+app.route("api", api);
 
 app.get("/health", (ctx) => ctx.json({ status: "ok" }));
 
