@@ -12,7 +12,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const htmlFile = Bun.file(
-  path.join(__dirname, isProd ? "dist" : "", "index.html")
+  path.join(__dirname, isProd ? "dist" : "", "template.html")
 );
 const html = await htmlFile.text();
 
