@@ -1,6 +1,6 @@
 import { createMiddleware } from "hono/factory";
 import path from "path";
-import { tryCatch } from "../lib/tryCatch";
+// import { tryCatch } from "../lib/tryCatch";
 
 const staticRequestsHandler = (staticDir: string) =>
   createMiddleware(async (ctx, next) => {
@@ -20,14 +20,15 @@ const staticRequestsHandler = (staticDir: string) =>
     const absoluteFilePath = path.join(staticDir, relativePath);
 
     const file = Bun.file(absoluteFilePath);
-    const exists = await tryCatch(file.exists());
+    // const exists = await tryCatch(file.exists());
+    const exists = await file.exists()
 
-    if (exists.error) {
-      ctx.log(`[Static] Truoble trying to find file: ${absoluteFilePath}.`);
+    // if (exists.error) {
+      // ctx.log(`[Static] Truoble trying to find file: ${absoluteFilePath}.`);
 
-      await next();
-    }
-    if (!exists.data) {
+      // await next();
+    // }
+    if (!exists) {
       ctx.log(`[Static] File not found: ${absoluteFilePath}.`);
 
       return ctx.text("Not Found", 404);
