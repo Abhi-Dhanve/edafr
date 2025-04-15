@@ -5,8 +5,16 @@ import Home from "./pages/Home";
 import Register from "./pages/Register";
 import History from "./pages/History";
 import Admin from "./pages/Admin";
+import Unauthorized from "./pages/Unauthorized";
+
+
+
+
+
 
 export default function () {
+ 
+  
   return (
     <BrowserRouter>
       <Routes>
@@ -15,7 +23,7 @@ export default function () {
           <Route path="register" element={<Register />} />
           <Route path="history" element={<History />} />
           <Route path="admin" element={<Admin />} />
-
+          <Route path="unauthorized" element={<Unauthorized />} />
         </Route>
 
         <Route path="*" element={<NotFound />} />
