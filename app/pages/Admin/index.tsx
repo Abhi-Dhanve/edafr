@@ -11,7 +11,7 @@ import { useEffect } from 'react';
 
 export default function (){
   
-  const adminEmail: string[] = ["abhidhanve483@gmail.com", "admin2", "admin3"];
+  const adminEmail: string[] = ["abhidhanve483@gmail.com", "spandan567@gmail.com", "admin3"];
   const {data :user} = api.useSelfInfo();
   console.log(user)
   const navigate = useNavigate();
