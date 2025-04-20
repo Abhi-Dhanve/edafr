@@ -1,102 +1,190 @@
 import { Hono } from "hono";
 import ensureUser from "../middlewares/ensureUser";
+import adminOnly from "../middlewares/adminOnly";
+import { tryCatch } from "../../utils/tryCatch";
 import { getPrivyUserFromContext } from "../lib/privy";
 import db from "../lib/db";
 import { users } from "../lib/db/schema/user";
 import { eq, isNull } from "drizzle-orm";
-import ensureAdmin from "../middlewares/ensureAdmin";
+import { z } from "zod";
+import { zValidator } from "@hono/zod-validator";
+import { respond } from "../utils/respond";
+import { userSessions, sessions } from "../lib/db/schema/session";
 
-const app = new Hono();
+const app = new Hono()
 
-app.get("/self", ensureUser, async (ctx) => {
+  .get("/", ensureUser, async (ctx) => {
     const { user } = ctx.var;
+    return respond.ok(ctx, { user }, "user", 200);
+  })
 
-    return ctx.json({ user }, 200);
-});
+  .get("/all", adminOnly, async (ctx) => {
+    const allUsers = await tryCatch(
+      db.select().from(users).where(isNull(users.deletedAt))
+    );
 
-app.get("/all", async (ctx) => {
-    try {
-        const allUsers = await db.select().from(users);
-
-        if(allUsers.length == 0){return ctx.text("No users", 404)}
-        return ctx.json({ users: allUsers }, 200);
-    } catch (error) {
-        console.log(error);
-        return ctx.json(error , 400);
-    }  
-  
-})
-
-app.post("/self", async (ctx) => {
-    const { name } = await ctx.req.json();
-
-    if (typeof name != "string") return ctx.text("Name is required", 400);
-
-    const privyUser = await getPrivyUserFromContext(ctx);
-
-    if (!privyUser) return ctx.text("Unauthorized", 401);
-
-    const { 0: existingUser } = await db.select().from(users).where(
-        eq(users.privyId, privyUser.id),
-    ).limit(1);
-    if (existingUser) return ctx.text("User already exists", 409);
-
-    await db.insert(users).values({
-        privyId: privyUser.id,
-        name,
-        email: privyUser.google?.email || privyUser.email?.address ||
-            "invalid@email.com",
-    });
-
-    return ctx.text("Success", 201);
-});
-
-app.put("/self", ensureUser, async (ctx) => {
-
-    try {
-        const { name } = await ctx.req.json();
-        const { user } = ctx.var;
-        console.log(user);
-        if (typeof name != "string") return ctx.text("Name is required", 400);
-        await db.update(users).set({ name }).where(eq(users.id, user.id));
-        ctx.text("Success", 200);
-        return ctx.json({name},200);
-
-    } catch (error) {
-       console.log(error);
-       return ctx.json({error: "error"},400); 
+    if (allUsers.error) {
+      ctx.log(allUsers.error);
+      return respond.err(ctx, "Failed to fetch users", 500);
     }
-   
-});
 
+    return respond.ok(ctx, { users: allUsers.data }, "All users", 200);
+  })
 
-app.delete("/:id", ensureAdmin, async (ctx) => {
-    try {
-        const userId = ctx.req.param("id");
-        
-        // Check if the user exists first
-        const { 0: userToDelete } = await db.select()
-            .from(users)
-            .where(eq(users.id, Number(userId)))
-            .limit(1);
-            
-        if (!userToDelete) {
-            return ctx.json({ error: "User not found" }, 404);
-        }
+  .get(
+    "/:id/sessions",
+    adminOnly,
+    zValidator(
+      "param",
+      z.object({
+        id: z.string().transform((val) => Number(val)),
+      })
+    ),
+    async (ctx) => {
+      const { id } = ctx.req.valid("param");
 
-        // Delete the user
-        await db.delete(users).where(eq(users.id, Number(userId)));
-        
-        return ctx.json({ 
-            message: "User deleted successfully",
-            deletedUserId: userId 
-        }, 200);
-    } catch (error) {
-        console.log(error);
-        return ctx.json({ error: "Failed to delete user" }, 400);
+      const userSessionsWithDetails = await tryCatch(
+        db
+          .select({
+            userSession: userSessions,
+            session: sessions,
+          })
+          .from(userSessions)
+          .innerJoin(sessions, eq(userSessions.sessionId, sessions.id))
+          .where(eq(userSessions.userId, id))
+          .orderBy(userSessions.createdAt)
+      );
+
+      if (userSessionsWithDetails.error) {
+        ctx.log(userSessionsWithDetails.error);
+        return respond.err(ctx, "Failed to fetch user sessions", 500);
+      }
+
+      const formattedSessions = userSessionsWithDetails.data.map((item) => ({
+        id: item.userSession.id,
+        sessionId: item.userSession.sessionId,
+        userId: item.userSession.userId,
+        paymentId: item.userSession.paymentId,
+        createdAt: item.userSession.createdAt,
+        sessionDetails: {
+          name: item.session.name,
+          totalPrice: item.session.totalPrice,
+          numberOfSessions: item.session.numberOfSessions,
+          days: item.session.days,
+        },
+      }));
+
+      return respond.ok(
+        ctx,
+        { sessions: formattedSessions },
+        `Sessions for user ${id}`,
+        200
+      );
     }
-});
+  )
 
+  .post(
+    "/",
+    zValidator(
+      "json",
+      z.object({
+        name: z.string().min(3, "Name too short").max(32, "Name too long"),
+      })
+    ),
+    async (ctx) => {
+      const { name } = ctx.req.valid("json");
 
+      const privyUser = await getPrivyUserFromContext(ctx);
+      if (!privyUser) return respond.err(ctx, "Unauthorized", 401);
+
+      const existingUserDbResponse = await tryCatch(
+        db.select().from(users).where(eq(users.privyId, privyUser.id)).limit(1)
+      );
+      if (existingUserDbResponse.error) {
+        ctx.log(existingUserDbResponse.error);
+        return respond.err(ctx, "Failed to communicate with database", 500);
+      }
+
+      const [existingUser] = existingUserDbResponse.data;
+
+      if (existingUser) return respond.err(ctx, "User already exists", 409);
+
+      const email = privyUser.google?.email || privyUser.email?.address;
+
+      if (!email)
+        return respond.err(
+          ctx,
+          "Invalid email, please create another account",
+          400
+        );
+
+      const [user] = await db
+        .insert(users)
+        .values({
+          privyId: privyUser.id,
+          name: name,
+          email: email,
+        })
+        .returning();
+
+      return respond.ok(ctx, { user }, "User created successfully", 201);
+    }
+  )
+
+  .patch(
+    "/",
+    zValidator(
+      "json",
+      z.object({
+        name: z.string().min(3, "Name too short").max(32, "Name too long"),
+      })
+    ),
+    ensureUser,
+    async (ctx) => {
+      const { name } = ctx.req.valid("json");
+      const { user } = ctx.var;
+
+      const updateUserDbResponse = await tryCatch(
+        db.update(users).set({ name }).where(eq(users.id, user.id)).returning()
+      );
+
+      if (updateUserDbResponse.error) {
+        ctx.log(updateUserDbResponse.error);
+        return respond.err(ctx, "Failed to update user", 500);
+      }
+
+      const [updatedUser] = updateUserDbResponse.data;
+
+      return respond.ok(ctx, { user: updatedUser }, "User updated", 200);
+    }
+  )
+
+  .delete(
+    "/:id",
+    zValidator(
+      "param",
+      z.object({
+        id: z.number().int().positive(),
+      })
+    ),
+    adminOnly,
+    async (ctx) => {
+      const { id } = ctx.req.valid("param");
+
+      const deleteUserDbResponse = await tryCatch(
+        db
+          .update(users)
+          .set({ deletedAt: new Date() })
+          .where(eq(users.id, Number(id)))
+      );
+
+      if (deleteUserDbResponse.error) {
+        ctx.log(deleteUserDbResponse.error);
+        return respond.err(ctx, "Failed to delete user", 500);
+      }
+
+      return respond.ok(ctx, {}, "User deleted", 200);
+    }
+  );
 
 export default app;

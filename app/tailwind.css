@@ -65,3 +65,7 @@
 @utility z-1 {
   @apply z-[1];
 }
+
+@utility flex-center {
+  @apply flex items-center justify-center;
+}

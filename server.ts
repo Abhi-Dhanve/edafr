@@ -5,6 +5,8 @@ import path from "path";
 import { ensureEnv } from "./env";
 import staticRequestsHandler from "./api/middlewares/staticRequestsHandler";
 import { fileURLToPath } from "url";
+import { BaseMime } from "hono/utils/mime";
+import { ResponseHeader } from "hono/utils/headers";
 
 const isProd =
   process.env.NODE_ENV === "production" || process.env.NODE_ENV === "prod";
@@ -58,6 +60,6 @@ export default {
 
 declare module "hono" {
   interface Context {
-    log: (...data: any[]) => void;
+    log(...data: any[]): void;
   }
 }

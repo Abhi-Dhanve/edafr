@@ -36,7 +36,12 @@ export default function () {
         <p className="text-xxs">Register</p>
       </NavLink>
 
-      <NavLink to={"/history"} className="flex flex-col items-center gap-y-1">
+      <NavLink
+        to={"/history"}
+        className={({ isActive }) =>
+          cn("flex flex-col items-center gap-y-1", isActive && "text-primary")
+        }
+      >
         <Icon name="history" className="size-6" />
         <p className="text-xxs">History</p>
       </NavLink>
@@ -48,7 +53,10 @@ export default function () {
         }}
       >
         {user?.data ? (
-          <UserAvatar className="size-6 rounded-full" name={user.data.name} />
+          <UserAvatar
+            className="size-6 rounded-full"
+            name={user.data.name || "John Doe"}
+          />
         ) : (
           <Icon name="user" className="size-6" />
         )}
@@ -62,57 +70,72 @@ export default function () {
   );
 }
 
-
 function ProfileDrawer() {
   const privy = usePrivy();
   const user = api.useSelfInfo();
-  
 
   const [isEditing, setIsEditing] = useState(false);
-  const [name, setName] = useState(user.data.name);
+  const [name, setName] = useState(user?.data?.name);
 
   function handleEdit() {
-    setIsEditing(isEditing => !isEditing);
+    setIsEditing((isEditing) => !isEditing);
   }
-const handleSave = async () => {
+  const handleSave = async () => {
     try {
-     await axios.put("/user/self", {name}).then(() => {
+      await axios.put("/user/self", { name }).then(() => {
         user.refetch();
         setIsEditing(false);
       });
-
     } catch (error) {
       console.log(error);
     }
-  }
+  };
 
   return (
     <div className="flex flex-col w-full">
       <div className="flex items-center gap-x-3">
-        <UserAvatar className="rounded-full size-12" name={user.data?.name} />
+        <UserAvatar
+          className="rounded-full size-12"
+          name={user.data?.name || "John Doe"}
+        />
 
         <div>
-         
+          {isEditing ? (
+            <p>
+              <input
+                type="text"
+                defaultValue={name?.toString()}
+                onChange={(e) => setName(e.target.value)}
+              />
+              <button onClick={handleSave}>Save</button>
+              <button onClick={handleEdit}>Cancel</button>
+            </p>
+          ) : (
+            <>
+              <h3 className="flex items-center gap-x-2">
+                {user.data?.name}{" "}
+                <Icon
+                  onClick={handleEdit}
+                  style={{ cursor: "pointer" }}
+                  name="pen"
+                  className="size-[0.6em]"
+                />
+              </h3>
+            </>
+          )}
 
-          {isEditing ? <p>
-            <input type="text" value={name} onChange={(e) => setName(e.target.value)} />
-            <button onClick={handleSave}>Save</button>
-            <button onClick={handleEdit}>Cancel</button>
-          </p>  : <>
-          <h3 className="flex items-center gap-x-2">
-            {user.data.name} <Icon onClick={handleEdit} style={{cursor: "pointer"}} name="pen" className="size-[0.6em]" />
-          </h3>
-          </> }
-
-          <p className="text-sm text-foreground/70">{user.data.email}</p>
+          <p className="text-sm text-foreground/70">{user.data?.email}</p>
         </div>
       </div>
 
       <button
         className="bg-black border p-2 w-full mt-5 border-red-700/60 text-red-700 flex items-center justify-center rounded-lg gap-x-2"
-        onClick={() => privy.logout().
-          // again, better ways to handle this
-          then(() => location.reload())}
+        onClick={() =>
+          privy
+            .logout()
+            // again, better ways to handle this
+            .then(() => location.reload())
+        }
       >
         Logout
         <Icon name="log-out" />

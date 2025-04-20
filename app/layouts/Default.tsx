@@ -1,11 +1,12 @@
 import { Outlet } from "react-router";
-import axios from "axios";
 import { useEffect } from "react";
 import Tabs from "../shared/components/Tabs";
 import { usePrivy } from "@privy-io/react-auth";
 import { cn } from "../shared/utils/utils";
 import api from "../shared/hooks/api";
+import { Toaster } from "sonner";
 import NameDrawer from "../shared/components/NameDrawer";
+import { setAuthToken } from "../shared/utils/apiClient";
 
 export default function () {
   const privy = usePrivy();
@@ -13,15 +14,15 @@ export default function () {
   const user = api.useSelfInfo();
 
   useEffect(() => {
-    if (privy.init && privy.authenticated) {
+    if (privy.ready && privy.authenticated) {
       privy.getAccessToken().then((token) => {
-        axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+        setAuthToken(`Bearer ${token}`);
         setTimeout(() => {
           user.refetch();
         }, 1000);
       });
     }
-  }, [privy.init, privy.authenticated]);
+  }, [privy.ready, privy.authenticated]);
 
   return (
     <main className="h-screen flex flex-col relative">
@@ -36,6 +37,7 @@ export default function () {
 
       <Tabs />
       <NameDrawer open={user.data?.status === -1} />
+      <Toaster richColors />
     </main>
   );
 }

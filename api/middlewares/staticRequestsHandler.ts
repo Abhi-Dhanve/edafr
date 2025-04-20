@@ -1,5 +1,6 @@
 import { createMiddleware } from "hono/factory";
 import path from "path";
+import { respond } from "../utils/respond";
 // import { tryCatch } from "../lib/tryCatch";
 
 const staticRequestsHandler = (staticDir: string) =>
@@ -14,24 +15,24 @@ const staticRequestsHandler = (staticDir: string) =>
     // Prevent directory traversal attacks
     if (relativePath.includes("..")) {
       ctx.log(`[Static] Denied potentially malicious path: ${relativePath}`);
-      return ctx.text("Forbidden", 403);
+      return respond.err(ctx, "Forbidden", 403);
     }
 
     const absoluteFilePath = path.join(staticDir, relativePath);
 
     const file = Bun.file(absoluteFilePath);
     // const exists = await tryCatch(file.exists());
-    const exists = await file.exists()
+    const exists = await file.exists();
 
     // if (exists.error) {
-      // ctx.log(`[Static] Truoble trying to find file: ${absoluteFilePath}.`);
+    // ctx.log(`[Static] Truoble trying to find file: ${absoluteFilePath}.`);
 
-      // await next();
+    // await next();
     // }
     if (!exists) {
       ctx.log(`[Static] File not found: ${absoluteFilePath}.`);
 
-      return ctx.text("Not Found", 404);
+      return respond.err(ctx, "Not Found", 404);
     }
 
     const mimeType = mimeLookup(absoluteFilePath) || "application/octet-stream";
